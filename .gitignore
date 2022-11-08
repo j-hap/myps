@@ -1,0 +1,4 @@
+*.o
+myps
+myps.tab.*
+lex.yy.c
