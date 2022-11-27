@@ -1,5 +1,6 @@
 %{
 #include "myps.tab.h"
+#include "ComplexNode.h"
 
 // this is called before every code block when a match is found
 // line increment is handled in matched newline
@@ -167,18 +168,22 @@ float           {pm}?{digits}\.{digits}?(E{pm}?{digits})?
 }
 
 {integer} {
+  yylval.content = new ComplexNode{yytext};
   return INT;
 }
 
 {float} {
+  yylval.content = new ComplexNode{yytext};
   return NUM;
 }
 
 {unary} {
+  yylval.content = new ComplexNode{yytext};
   return UNARY;
 }
 
 ("random"|"exp") {
+  yylval.content = new ComplexNode{yytext};
   return BINARY;
 }
 
@@ -200,11 +205,14 @@ float           {pm}?{digits}\.{digits}?(E{pm}?{digits})?
 }
 
 \"{string}\" {
-  // handle string node creation
+  // shortens string by one character
+  yytext[yyleng-1] = '\0';
+  yylval.content = new ComplexNode{yytext+1};
   return STR;
 }
 
 {identifier} {
+  yylval.content = new ComplexNode{yytext};
   return ID;
 }
 
