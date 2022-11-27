@@ -588,7 +588,7 @@ TermCmd     : ROTATE '(' NumExpr ',' TermVal ')'
             ;
 Loop        : FOR ID ASSIGNMENT NumExpr TO NumExpr STEP NumExpr DO Cmds DONE
               {
-                $$ = new ComplexNode{$4->code + " " + $6->code + " " + $8->code + "\n" + $10->code + "\nfor"};
+                $$ = new ComplexNode{$4->code + " " + $6->code + " " + $8->code + " {\n" + $10->code + "\n} for"};
                 delete $4;
                 delete $6;
                 delete $8;
