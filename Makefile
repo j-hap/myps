@@ -6,6 +6,7 @@ CXX = g++
 #  -g    adds debugging information to the executable file
 #  -Wall turns on most, but not all, compiler warnings
 CFLAGS  = -g -Wall
+INCLUDE = -Isrc -Ibuild
 
 # the build target executable:
 TARGET = myps
@@ -13,11 +14,12 @@ TARGET = myps
 all: $(TARGET)
 
 $(TARGET):
-	bison -d -t $(TARGET).y
-	flex $(TARGET).l
-	$(CXX) $(CFLAGS) -c -o scan.o lex.yy.c
-	$(CXX) $(CFLAGS) -c -o parse.o $(TARGET).tab.c
-	$(CXX) $(CFLAGS) -o $(TARGET) scan.o parse.o -lfl
+	mkdir -p build
+	bison -o build/lex.yy.c -d -t src/$(TARGET).y
+	flex --header-file=$(TARGET).tab.h -o build/$(TARGET).tab.c src/$(TARGET).l
+	$(CXX) $(CFLAGS) $(INCLUDE) -c -o build/scan.o build/lex.yy.c
+	$(CXX) $(CFLAGS) $(INCLUDE) -c -o build/parse.o build/$(TARGET).tab.c
+	$(CXX) $(CFLAGS) $(INCLUDE) -o build/$(TARGET) build/scan.o build/parse.o -lfl
 
 clean:
-	$(RM) $(TARGET) scan.o parse.o
+	$(RM) -r build
