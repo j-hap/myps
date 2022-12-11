@@ -87,6 +87,7 @@ to be declared which type it carries */
 Program     : PICTURE STR Decls START Cmds END
               {
                 std::cout << "%!PS-Adobe\n";
+                std::cout << "/stringbuffer 20 string def\n"; // string object for 2string conversion
                 std::cout << $5->code << "\n";
                 std::cout << "showpage\n";
                 delete $5;
@@ -115,8 +116,12 @@ Dec         : VAR ID ':' TYPE ';'
             ;
 Def         : ID ASSIGNMENT ValueExpr
               {
+                // immediate binding of evaluated term must not
+                // be done in a macro, but the expression must
+                // be evaluated on the stack and then assigned to
+                // the variable
                 std::stringstream buffer;
-                buffer << "/" << $1->code << " {" << $3->code << "} def";
+                buffer << $3->code << " /" << $1->code << " exch def";
                 $$ = new ComplexNode{buffer.str()};
                 delete $1;
                 delete $3;
@@ -289,7 +294,7 @@ StringVal   : STR
             | ID {} // default $$ = $1 is fine
             | NUM2STRING '(' NumExpr ')'
               {
-                $$ = new ComplexNode{"(" + $3->code + ")"};
+                $$ = new ComplexNode{$3->code + " stringbuffer cvs"};
                 delete $3;
                 // fprintf(stdout, "StringVal -> NUM2STRING\n");
               }
@@ -588,7 +593,15 @@ TermCmd     : ROTATE '(' NumExpr ',' TermVal ')'
             ;
 Loop        : FOR ID ASSIGNMENT NumExpr TO NumExpr STEP NumExpr DO Cmds DONE
               {
-                $$ = new ComplexNode{$4->code + " " + $6->code + " " + $8->code + " {\n" + $10->code + "\n} for"};
+                std::stringstream buffer;
+                buffer << $4->code << " " << $8->code << " " << $6->code << " {\n";
+                // loop counter is on top of the stack now, must assign it to
+                // the variable
+                buffer << "/" << $2->code << " exch def\n";
+                buffer << $10->code << "\n";
+                buffer << "} for";
+                $$ = new ComplexNode{buffer.str()};
+                delete $2;
                 delete $4;
                 delete $6;
                 delete $8;
