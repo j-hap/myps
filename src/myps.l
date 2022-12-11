@@ -1,5 +1,5 @@
 %{
-#include "myps.tab.h"
+#include "parser.h"
 #include "ComplexNode.h"
 
 // this is called before every code block when a match is found
@@ -13,7 +13,6 @@
 letter          [A-Za-z]
 digit           [0-9]
 digits          [0-9]+
-emptyspace      [ \t\n]+
 string          [^\"]*
 identifier      {letter}({letter}|{digit})*
 type            ("Int"|"Num"|"String"|"Point"|"Path"|"Term")
