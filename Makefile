@@ -6,20 +6,35 @@ CXX = g++
 #  -g    adds debugging information to the executable file
 #  -Wall turns on most, but not all, compiler warnings
 CFLAGS  = -g -Wall
-INCLUDE = -Isrc -Ibuild
+LIBFLAGS  = -lfl
+SRC = ./src
+BUILD = ./build
+IFLAGS = $(addprefix -I,$(SRC) $(BUILD))
 
 # the build target executable:
 TARGET = myps
 
 all: $(TARGET)
 
-$(TARGET):
-	mkdir -p build
-	bison -o build/lex.yy.c -d -t src/$(TARGET).y
-	flex --header-file=$(TARGET).tab.h -o build/$(TARGET).tab.c src/$(TARGET).l
-	$(CXX) $(CFLAGS) $(INCLUDE) -c -o build/scan.o build/lex.yy.c
-	$(CXX) $(CFLAGS) $(INCLUDE) -c -o build/parse.o build/$(TARGET).tab.c
-	$(CXX) $(CFLAGS) $(INCLUDE) -o build/$(TARGET) build/scan.o build/parse.o -lfl
+# parser must be built first because scanner includes it
+$(TARGET): create_outdir parser scanner
+	$(CXX) $(CFLAGS) $(IFLAGS) -o $(BUILD)/$(TARGET) $(BUILD)/scanner.o $(BUILD)/parser.o $(LIBFLAGS)
+
+create_outdir:
+	mkdir -p $(BUILD)
+
+parser: parser.c
+	$(CXX) $(CFLAGS) $(IFLAGS) -c -o $(BUILD)/parser.o $(BUILD)/parser.c
+
+parser.c:
+	bison -o $(BUILD)/parser.c -d -t $(SRC)/$(TARGET).y
+
+scanner: scanner.c
+	$(CXX) $(CFLAGS) $(IFLAGS) -c -o $(BUILD)/scanner.o $(BUILD)/scanner.c
+
+scanner.c:
+	flex --header-file=scanner.h -o scanner.c $(SRC)/$(TARGET).l
+	mv scanner.h scanner.c $(BUILD)
 
 clean:
 	$(RM) -r build
